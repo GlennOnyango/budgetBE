@@ -9,7 +9,8 @@ const budgetController = require("../controllers/budget");
 
 const auth_token = require("../middleware/auth_token");
 
-route.get("/budget",auth_token,budgetController.getBudgets)
+//Budget -> Budget bundle -> Budget Item
+route.get("/budget", auth_token, budgetController.getBudgets);
 
 route.post(
   "/budget",
@@ -35,5 +36,23 @@ route.post(
   ],
   budgetController.createBudget
 );
+
+//Budget bundle -> Budget Item
+
+//Budget Item
+route.post("/budget-item", auth_token, [
+  body("item_name")
+    .notEmpty()
+    .withMessage("Budge t name can't be empty")
+    .isLength({ min: 4 })
+    .trim()
+    .custom((value, { req }) => {
+      return Budget.findOne({ id: req.userId, name: value }).then((budget) => {
+        if (budget) {
+          return Promise.reject("Please choose different name for your budget");
+        }
+      });
+    }),
+]);
 
 module.exports = route;
