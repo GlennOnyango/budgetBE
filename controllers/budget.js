@@ -1,6 +1,6 @@
 const Budget = require("../models/budget");
 const Bundle = require("../models/bundle");
-const BudgetItem = require("../models/budgetItem");
+const Item = require("../models/item");
 const { validationResult } = require("express-validator");
 
 exports.createBudget = async (req, res, next) => {
@@ -13,13 +13,17 @@ exports.createBudget = async (req, res, next) => {
     next(error);
   } else {
     const name = req.body.name;
-    const budgetType = req.body.budget_type;
+    const duration = req.body.duration;
+    const limit = req.body.limit;
+    const amount = req.body.amount;
     const creator = req.userId;
 
     try {
       const budget = new Budget({
         name,
-        budgetType,
+        duration,
+        limit,
+        amount,
         creator,
       });
 
@@ -48,6 +52,27 @@ exports.getBudgets = async (req, res, next) => {
     res.status(200).json({
       message: "All budgets Fetched successfully",
       budget: budget,
+    });
+  } catch (err) {
+    if (!err.status) {
+      err.status = 500;
+    }
+    next();
+  }
+};
+
+//Bundles
+exports.getBundles = async (req, res, next) => {
+  try {
+    const bundle = await Bundle.find({
+      creator: req.userId,
+    })
+      .populate("creator")
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      message: "All bundles Fetched successfully",
+      budget: bundle,
     });
   } catch (err) {
     if (!err.status) {
@@ -93,27 +118,33 @@ exports.createBundle = async (req, res, next) => {
   }
 };
 
-exports.getBundles = async (req, res, next) => {
-  try {
-    const bundle = await Bundle.find({
-      creator: req.userId,
-    })
-      .populate("creator")
-      .sort({ createdAt: -1 });
+exports.addItemsToBundle = async (req, res, next) => {
+  const bundleId = req.body.bundleId;
+  const items = req.body.items;
 
-    res.status(200).json({
-      message: "All bundles Fetched successfully",
-      budget: bundle,
-    });
-  } catch (err) {
-    if (!err.status) {
-      err.status = 500;
-    }
-    next();
-  }
+  const bundleSelected = Bundle.findById(bundleId);
+  const newItems = [...bundleSelected.items, ...items];
+
+  let newAmount = 0;
+
+  bundleSelected.items.forEach((item) => {
+    newAmount += item.amount;
+  });
+
+  items.forEach((item) => {
+    newAmount += item.amount;
+  });
+
+  const bundle = Bundle.findByIdAndUpdate(bundleId, {
+    items: newItems,
+    amount: newAmount,
+  });
+
+  res.status(200).json({ message: "Bundle updated", bundle: bundle });
 };
 
-exports.createBudgetItem = async (req, res, next) => {
+//Items
+exports.createItem = async (req, res, next) => {
   const errors = validationResult(req);
 
   if (!errors.isEmpty()) {
@@ -125,21 +156,23 @@ exports.createBudgetItem = async (req, res, next) => {
     const name = req.body.name;
     const status = req.body.status;
     const amount = req.body.amount;
+    const quantity = req.body.quantity;
     const creator = req.userId;
 
     try {
-      const budgetItem = new BudgetItem({
+      const item = new Item({
         name,
         status,
         amount,
+        quantity,
         creator,
       });
 
-      const createdBudget = await budgetItem.save();
+      const itemCreated = await item.save();
 
       res
         .status(201)
-        .json({ message: "Item created", itemId: createdBudget._id });
+        .json({ message: "Item created", itemId: itemCreated._id });
     } catch (err) {
       if (!err.status) {
         err.status = 500;
@@ -149,9 +182,9 @@ exports.createBudgetItem = async (req, res, next) => {
   }
 };
 
-exports.getBundles = async (req, res, next) => {
+exports.getItems = async (req, res, next) => {
   try {
-    const budgetItem = await BudgetItem.find({
+    const items = await Item.find({
       creator: req.userId,
     })
       .populate("creator")
@@ -159,7 +192,7 @@ exports.getBundles = async (req, res, next) => {
 
     res.status(200).json({
       message: "All items Fetched successfully",
-      budget: budgetItem,
+      budget: items,
     });
   } catch (err) {
     if (!err.status) {

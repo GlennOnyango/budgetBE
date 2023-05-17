@@ -14,16 +14,15 @@ const budgetItemSchema = new Schema({
     type: Number,
     required: true,
   },
+  quantity: {
+    type: Number,
+    required: true,
+  },
   creator: {
     type: Schema.Types.ObjectId,
     ref: "User",
     required: true,
   },
-  bundle: {
-    type: Schema.Types.ObjectId,
-    ref: "Bundle",
-    required: false,
-  },
 });
 
-module.exports = mongoose.model("Bundle", budgetItemSchema);
+module.exports = mongoose.model("Item", budgetItemSchema);

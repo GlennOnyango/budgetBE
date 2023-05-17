@@ -6,8 +6,16 @@ const budgetSchema = new Schema({
     type: String,
     required: false,
   },
-  budgetType: {
+  duration: {
     type: String,
+    required: true,
+  },
+  limit: {
+    type: Number,
+    required: true,
+  },
+  amount: {
+    type: Number,
     required: true,
   },
   creator: {
@@ -15,6 +23,43 @@ const budgetSchema = new Schema({
     ref: "User",
     required: true,
   },
+  parent: {
+    type: Schema.Types.ObjectId,
+    ref: "Budget",
+    required: false,
+  },
+  childrenBudget: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: "Bundle",
+    },
+  ],
+  childrenBundle: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: "Bundle",
+    },
+  ],
+  childrenItem: [
+    {
+      name: {
+        type: String,
+        required: false,
+      },
+      status: {
+        type: Boolean,
+        required: true,
+      },
+      amount: {
+        type: Number,
+        required: true,
+      },
+      quantity: {
+        type: Number,
+        required: true,
+      },
+    },
+  ],
 });
 
 module.exports = mongoose.model("Budget", budgetSchema);

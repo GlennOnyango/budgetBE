@@ -6,9 +6,9 @@ const bundleSchema = new Schema({
     type: String,
     required: false,
   },
-  status:{
-    type:Boolean,
-    required:true,
+  status: {
+    type: Boolean,
+    required: true,
   },
   amount: {
     type: Number,
@@ -19,11 +19,31 @@ const bundleSchema = new Schema({
     ref: "User",
     required: true,
   },
-  budget:{
+  budget: {
     type: Schema.Types.ObjectId,
     ref: "Budget",
     required: false,
-  }
+  },
+  items: [
+    {
+      name: {
+        type: String,
+        required: false,
+      },
+      status: {
+        type: Boolean,
+        required: true,
+      },
+      amount: {
+        type: Number,
+        required: true,
+      },
+      quantity: {
+        type: Number,
+        required: true,
+      },
+    },
+  ],
 });
 
 module.exports = mongoose.model("Bundle", bundleSchema);
