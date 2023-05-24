@@ -1,5 +1,5 @@
 const express = require("express");
-const { body } = require("express-validator");
+const { body, param } = require("express-validator");
 
 const route = express.Router();
 
@@ -12,11 +12,11 @@ const auth_token = require("../middleware/auth_token");
 //Item
 
 route.get(
-  "item/:id",
+  "/get-item/:itemId",
   [
-    body("id").notEmpty().withMessage("Item Id can't be empty").trim(),
-    body("id").isMongoId().withMessage("Item Id is not a valid Mongo Id"),
-    body("id").custom((value, { req }) => {
+    param("itemId").notEmpty().withMessage("Item Id can't be empty").trim(),
+    param("id").isMongoId().withMessage("Item Id is not a valid Mongo Id"),
+    param("id").custom((value, { req }) => {
       return item
         .findOne({ creator: req.userId, _id: value })
         .then((budget) => {
@@ -30,10 +30,10 @@ route.get(
   itemController.getItem
 );
 
-route.get("items", auth_token, itemController.getItems);
+route.get("/get-items", auth_token, itemController.getItems);
 
 route.post(
-  "create-item",
+  "/create-item",
   auth_token,
   [
     body("name")
@@ -69,11 +69,11 @@ route.post(
 );
 
 route.put(
-  "items/:id",
+  "/edit-item/:itemId",
   [
-    body("id").notEmpty().withMessage("Item Id can't be empty").trim(),
-    body("id").isMongoId().withMessage("Item Id is not a valid Mongo Id"),
-    body("id").custom((value, { req }) => {
+    param("itemId").notEmpty().withMessage("Item Id can't be empty").trim(),
+    param("itemId").isMongoId().withMessage("Item Id is not a valid Mongo Id"),
+    param("itemId").custom((value, { req }) => {
       return item
         .findOne({ creator: req.userId, _id: value })
         .then((budget) => {
@@ -88,21 +88,19 @@ route.put(
 );
 
 route.delete(
-  "items/:id",
+  "/delete-item/:itemId",
+  auth_token,
   [
-    body("id").notEmpty().withMessage("Item Id can't be empty").trim(),
-    body("id").isMongoId().withMessage("Item Id is not a valid Mongo Id"),
-    body("id").custom((value, { req }) => {
-      return item
-        .findOne({ creator: req.userId, _id: value })
-        .then((budget) => {
-          if (!budget) {
-            return Promise.reject("Issue with the item id");
-          }
-        });
+    param("itemId").notEmpty().withMessage("Item Id can't be empty").trim(),
+    param("itemId").isMongoId().withMessage("Item Id is not a valid Mongo Id"),
+    param("itemId").custom((value, { req }) => {
+      return item.find({ creator: req.userId, _id: value }).then((budget) => {
+        if (!budget) {
+          return Promise.reject("Issue with the item id");
+        }
+      });
     }),
   ],
-  auth_token,
   itemController.deleteItem
 );
 
