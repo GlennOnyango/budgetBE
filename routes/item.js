@@ -33,7 +33,7 @@ route.get(
 route.get("items", auth_token, itemController.getItems);
 
 route.post(
-  "items",
+  "create-item",
   auth_token,
   [
     body("name")

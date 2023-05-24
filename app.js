@@ -5,9 +5,9 @@ const bodyParser = require("body-parser");
 const app = express();
 
 const authRoutes = require("./routes/auth");
-const budgetRoutes = require("./routes/budget");
-const bundleRoutes = require("./routes/bundle");
-const budgetItemRoutes = require("./routes/budgetItem");
+//const budgetRoutes = require("./routes/budget");
+//const bundleRoutes = require("./routes/bundle");
+const itemRoutes = require("./routes/item");
 
 app.use(bodyParser.json());
 
@@ -20,23 +20,21 @@ app.use((req, res, next) => {
 
 app.use("/auth", authRoutes);
 
-app.use("/budget", budgetRoutes);
-app.use("/bundle", bundleRoutes);
-app.use("/budgetItem", budgetItemRoutes);
+// app.use("/budget", budgetRoutes);
+// app.use("/bundle", bundleRoutes);
+app.use("/items", itemRoutes);
 
 app.use((error, req, res, next) => {
   res.status(error.status || 500).json({ message: error.message });
 });
-//7CenycxUocHa6eEJ
+
 mongoose
-  .connect(
-    `mongodb+srv://glenntedd:${process.env.MYPASSWORD}@cluster0.hvxfqut.mongodb.net/budget`
-  )
+  .connect(`${process.env.MONGO_URI}`)
   .then(() => {
-    app.listen(8080);
+    app.listen(process.env.PORT || 8080);
   })
   .catch((err) => {
-    const error = new Error("Database connection error");
-    error.stack = 500;
-    throw error;
+    err.message = "Database connection error";
+    err.status = 500;
+    throw err;
   });
