@@ -82,6 +82,7 @@ exports.getBundles = async (req, res, next) => {
   }
 };
 
+exports.getBundle = async (res, res, next) => {};
 exports.createBundle = async (req, res, next) => {
   const errors = validationResult(req);
 
@@ -142,6 +143,8 @@ exports.addItemsToBundle = async (req, res, next) => {
 
   res.status(200).json({ message: "Bundle updated", bundle: bundle });
 };
+
+exports.deteleBundle = async (res, res, next) => {};
 
 //Items
 exports.createItem = async (req, res, next) => {
