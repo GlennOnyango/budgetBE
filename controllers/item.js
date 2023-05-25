@@ -1,4 +1,6 @@
 const Item = require("../models/item");
+const Budget = require("../models/budget");
+const Bundle = require("../models/bundle");
 const { validationResult } = require("express-validator");
 
 //Items
@@ -161,3 +163,95 @@ exports.deleteItem = async (req, res, next) => {
     }
   }
 };
+
+//write a function to add an item to a budget
+exports.addItemToBudget = async (req, res, next) => {
+  const budgetId = req.params.budgetId;
+  const itemId = req.params.itemId;
+
+  try {
+    const budget = await Budget.findById(budgetId);
+
+    if (!budget) {
+      const error = new Error("Budget not found");
+      error.status = 404;
+      throw error;
+    }
+
+    const item = await Item.findById(itemId);
+
+    if (!item) {
+      const error = new Error("Item not found");
+      error.status = 404;
+      throw error;
+    }
+
+    budget.childrenItem.forEach(it=>{
+      if(it.name == item.name){
+        const error = new Error("Item already added to budget");
+        error.status = 404;
+        throw error;
+      }
+    }) 
+    delete item._id;
+    budget.childrenItem.push(item);
+
+    const budgetUpdated = await budget.save();
+
+    res.status(200).json({
+      message: "Item added to budget",
+      budget: budgetUpdated,
+    });
+  } catch (err) {
+    if (!err.status) {
+      err.status = 500;
+    }
+    next();
+  }
+}
+
+//write a function to add an item to a bundle
+exports.addItemToBundle = async (req, res, next) => {
+  const bundleId = req.params.bundleId;
+  const itemId = req.params.itemId;
+
+  try {
+    const bundle = await Bundle.findById(bundleId);
+
+    if (!bundle) {
+      const error = new Error("Bundle not found");
+      error.status = 404;
+      throw error;
+    }
+
+    const item = await Item.findById(itemId);
+
+    if (!item) {
+      const error = new Error("Item not found");
+      error.status = 404;
+      throw error;
+    }
+
+    bundle.items.forEach(it=>{
+      if(it.name == item.name){
+        const error = new Error("Item already added to bundle");
+        error.status = 404;
+        throw error;
+      }
+    }) 
+    delete item._id;
+    bundle.items.push(item);
+
+    const bundleUpdated = await bundle.save();
+
+    res.status(200).json({
+      message: "Item added to bundle",
+      bundle: bundleUpdated,
+    });
+  } catch (err) {
+    if (!err.status) {
+      err.status = 500;
+    }
+    next();
+  }
+}

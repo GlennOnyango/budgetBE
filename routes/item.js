@@ -4,6 +4,8 @@ const { body, param } = require("express-validator");
 const route = express.Router();
 
 const item = require("../models/item");
+const budget = require("../models/budget");
+const bundle = require("../models/bundle");
 
 const itemController = require("../controllers/item");
 
@@ -19,8 +21,8 @@ route.get(
     param("id").custom((value, { req }) => {
       return item
         .findOne({ creator: req.userId, _id: value })
-        .then((budget) => {
-          if (!budget) {
+        .then((itemFound) => {
+          if (!itemFound) {
             return Promise.reject("Issue with the item id");
           }
         });
@@ -44,8 +46,8 @@ route.post(
       .custom((value, { req }) => {
         return item
           .findOne({ creator: req.userId, name: value })
-          .then((budget) => {
-            if (budget) {
+          .then((itemFound) => {
+            if (itemFound) {
               return Promise.reject(
                 "Please choose different name for your item"
               );
@@ -76,8 +78,8 @@ route.put(
     param("itemId").custom((value, { req }) => {
       return item
         .findOne({ creator: req.userId, _id: value })
-        .then((budget) => {
-          if (!budget) {
+        .then((itemFound) => {
+          if (!itemFound) {
             return Promise.reject("Issue with the item id");
           }
         });
@@ -94,14 +96,78 @@ route.delete(
     param("itemId").notEmpty().withMessage("Item Id can't be empty").trim(),
     param("itemId").isMongoId().withMessage("Item Id is not a valid Mongo Id"),
     param("itemId").custom((value, { req }) => {
-      return item.find({ creator: req.userId, _id: value }).then((budget) => {
-        if (!budget) {
-          return Promise.reject("Issue with the item id");
-        }
-      });
+      return item
+        .find({ creator: req.userId, _id: value })
+        .then((itemFound) => {
+          if (!itemFound) {
+            return Promise.reject("Issue with the item id");
+          }
+        });
     }),
   ],
   itemController.deleteItem
+);
+
+route.put(
+  "/add-item-to-budget/:itemId",
+  auth_token,
+  [
+    param("itemId").isMongoId().withMessage("Item Id is not a valid Mongo Id"),
+    param("itemId").custom((value, { req }) => {
+      return item
+        .findOne({ creator: req.userId, _id: value })
+        .then((itemFound) => {
+          if (!itemFound) {
+            return Promise.reject("Issue with the item id");
+          }
+        });
+    }),
+    body("budgetId").notEmpty().withMessage("Budget Id can't be empty").trim(),
+    body("budgetId")
+      .isMongoId()
+      .withMessage("Budget Id is not a valid Mongo Id"),
+    body("budgetId").custom((value, { req }) => {
+      return budget
+        .findOne({ creator: req.userId, _id: value })
+        .then((budgetFound) => {
+          if (!budgetFound) {
+            return Promise.reject("Issue with the budget id");
+          }
+        });
+    }),
+  ],
+  itemController.addItemToBudget
+);
+
+route.put(
+  "/add-item-to-bundle/:itemId",
+  auth_token,
+  [
+    param("itemId").isMongoId().withMessage("Item Id is not a valid Mongo Id"),
+    param("itemId").custom((value, { req }) => {
+      return item
+        .findOne({ creator: req.userId, _id: value })
+        .then((itemFound) => {
+          if (!itemFound) {
+            return Promise.reject("Issue with the item id");
+          }
+        });
+    }),
+    body("bundleId").notEmpty().withMessage("Bundle Id can't be empty").trim(),
+    body("bundleId")
+      .isMongoId()
+      .withMessage("Bundle Id is not a valid Mongo Id"),
+    body("bundleId").custom((value, { req }) => {
+      return bundle
+        .findOne({ creator: req.userId, _id: value })
+        .then((bundleFound) => {
+          if (!bundleFound) {
+            return Promise.reject("Issue with the bundle id");
+          }
+        });
+    }),
+  ],
+  itemController.addItemToBundle
 );
 
 //Add
